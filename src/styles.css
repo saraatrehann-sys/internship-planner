@@ -82,9 +82,10 @@ a {
 .brand strong {
   display: block;
   color: var(--sand);
-  font-size: 1rem;
+  font-size: 0.94rem;
   font-weight: 800;
   letter-spacing: 0;
+  line-height: 1.25;
 }
 
 nav {
@@ -268,8 +269,8 @@ nav button.active {
 
 .quote-panel h1 {
   max-width: 980px;
-  font-size: clamp(3rem, 8vw, 7.7rem);
-  line-height: 0.92;
+  font-size: clamp(2.7rem, 6.8vw, 6.35rem);
+  line-height: 0.96;
 }
 
 .quote-panel p:last-child {
@@ -284,6 +285,7 @@ nav button.active {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
   gap: 24px;
+  align-items: stretch;
 }
 
 .landing-card,
@@ -295,6 +297,7 @@ nav button.active {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: rgba(34, 40, 49, 0.54);
+  overflow: hidden;
   transition: border-color 180ms ease, transform 180ms ease, background-color 180ms ease;
 }
 
@@ -319,12 +322,24 @@ nav button.active {
 
 .choice-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   gap: 10px;
+}
+
+.choice-grid.role-grid {
+  grid-template-columns: repeat(4, minmax(118px, 1fr));
 }
 
 .choice-grid.two {
   grid-template-columns: repeat(2, minmax(120px, 1fr));
+}
+
+.choice-grid.summer-choice {
+  max-width: 240px;
+}
+
+.summer-card {
+  grid-column: 1 / -1;
 }
 
 .choice-grid button,
@@ -829,7 +844,8 @@ select {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .choice-grid {
+  .choice-grid,
+  .choice-grid.role-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -854,6 +870,7 @@ select {
 
   nav,
   .choice-grid,
+  .choice-grid.role-grid,
   .choice-grid.two,
   .deloitte-grid,
   .meeting-row,

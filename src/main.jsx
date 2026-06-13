@@ -481,6 +481,7 @@ function App() {
             state={state}
             setRoleAndOpen={setRoleAndOpen}
             setTaskAndOpen={setTaskAndOpen}
+            openSummer={() => setPage("summer")}
             updateState={updateState}
           />
         )}
@@ -585,7 +586,7 @@ function Sidebar({ page, setPage }) {
     <aside className="sidebar">
       <div className="brand">
         <div>
-          <strong>Internship Planner</strong>
+          <strong>Sara's Internship Planner</strong>
         </div>
       </div>
       <nav>
@@ -671,11 +672,11 @@ function AuthPage({ onAuth }) {
   );
 }
 
-function HomePage({ state, setRoleAndOpen, setTaskAndOpen }) {
+function HomePage({ state, setRoleAndOpen, setTaskAndOpen, openSummer }) {
   return (
     <section className="landing">
       <div className="quote-panel">
-        <p className="kicker">For the version of you who keeps showing up</p>
+        <p className="kicker">You can do it, Sara!!!</p>
         <h1>Your future internship is a paper trail of tiny brave moves.</h1>
         <p>
           One application, one follow-up, one coffee chat, one clear note. That is how the offer starts looking for you too.
@@ -686,7 +687,7 @@ function HomePage({ state, setRoleAndOpen, setTaskAndOpen }) {
         <section className="landing-card">
           <h2>Role type</h2>
           <p>Pick a role to open its application sheet.</p>
-          <div className="choice-grid">
+          <div className="choice-grid role-grid">
             {roles.map((role) => (
               <button key={role} className={state.selectedRole === role ? "selected" : ""} onClick={() => setRoleAndOpen(role)}>
                 {role}
@@ -704,6 +705,14 @@ function HomePage({ state, setRoleAndOpen, setTaskAndOpen }) {
                 {view}
               </button>
             ))}
+          </div>
+        </section>
+
+        <section className="landing-card summer-card">
+          <h2>Summer 2026</h2>
+          <p>Open the editable to-do list for internships, classes, coffee chats, and recruiting prep.</p>
+          <div className="choice-grid summer-choice">
+            <button onClick={openSummer}>Open Summer 2026</button>
           </div>
         </section>
       </div>
