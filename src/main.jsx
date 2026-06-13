@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
   Upload,
+  Trash2,
   Users,
 } from "lucide-react";
 import "./styles.css";
@@ -235,6 +236,13 @@ function App() {
     }));
   };
 
+  const deleteRow = (collection, id) => {
+    updateState((current) => ({
+      ...current,
+      [collection]: current[collection].filter((item) => item.id !== id),
+    }));
+  };
+
   const handleSearch = (value) => {
     setQuery(value);
     const normalized = value.trim().toLowerCase();
@@ -329,7 +337,7 @@ function App() {
     setPage("calendar");
     updateState((current) => ({
       ...current,
-      meetings: [...current.meetings, { id: makeId("meeting"), time: "", title: "", notes: "" }],
+      meetings: [...current.meetings, { id: makeId("meeting"), title: "", notes: "", date: "" }],
     }));
   };
 
@@ -475,7 +483,7 @@ function App() {
           <section className="page-card">
             <PageHeader eyebrow="Tasks" title={`${state.selectedTaskView} task list`} action="Add task box" onAction={addTask} />
             <TaskTabs selected={state.selectedTaskView} onSelect={(taskView) => updateState((current) => ({ ...current, selectedTaskView: taskView }))} />
-            <TaskList tasks={visibleTasks} onChange={(id, patch) => updateRow("tasks", id, patch)} />
+            <TaskList tasks={visibleTasks} onChange={(id, patch) => updateRow("tasks", id, patch)} onDelete={(id) => deleteRow("tasks", id)} />
           </section>
         )}
 
@@ -502,7 +510,7 @@ function App() {
           <section className="page-card">
             <PageHeader eyebrow="Deloitte 2026" title="Deloitte 2026" action="Add note box" onAction={addDeloitte} />
             <TaskTabs selected={state.selectedTaskView} onSelect={(taskView) => updateState((current) => ({ ...current, selectedTaskView: taskView }))} />
-            <DeloitteList people={visibleDeloitte} onChange={(id, patch) => updateRow("deloitte", id, patch)} />
+            <DeloitteList people={visibleDeloitte} onChange={(id, patch) => updateRow("deloitte", id, patch)} onDelete={(id) => deleteRow("deloitte", id)} />
           </section>
         )}
       </main>
@@ -741,8 +749,8 @@ function MeetingList({ meetings, onChange }) {
     <div className="stack-list">
       {meetings.map((meeting) => (
         <article className="meeting-row" key={meeting.id}>
-          <input type="time" value={meeting.time} onChange={(event) => onChange(meeting.id, { time: event.target.value })} />
           <input value={meeting.title} onChange={(event) => onChange(meeting.id, { title: event.target.value })} />
+          <input type="date" value={meeting.date || ""} onChange={(event) => onChange(meeting.id, { date: event.target.value })} />
           <textarea value={meeting.notes} onChange={(event) => onChange(meeting.id, { notes: event.target.value })} />
         </article>
       ))}
@@ -750,7 +758,7 @@ function MeetingList({ meetings, onChange }) {
   );
 }
 
-function TaskList({ tasks, onChange }) {
+function TaskList({ tasks, onChange, onDelete }) {
   if (tasks.length === 0) return <div className="empty-card">Use Add task box to create a checkbox and writing space.</div>;
   return (
     <div className="stack-list">
@@ -764,13 +772,16 @@ function TaskList({ tasks, onChange }) {
           </button>
           <textarea value={task.text} onChange={(event) => onChange(task.id, { text: event.target.value })} />
           <input type="date" value={task.date} onChange={(event) => onChange(task.id, { date: event.target.value })} />
+          <button className="delete-button" onClick={() => onDelete(task.id)} aria-label="Delete task">
+            <Trash2 size={15} />
+          </button>
         </article>
       ))}
     </div>
   );
 }
 
-function DeloitteList({ people, onChange }) {
+function DeloitteList({ people, onChange, onDelete }) {
   if (people.length === 0) return <div className="empty-card">Use Add note box to create Deloitte notes and to-dos.</div>;
   return (
     <div className="deloitte-grid">
@@ -799,6 +810,9 @@ function DeloitteList({ people, onChange }) {
               aria-label="Toggle Deloitte task"
             >
               {item.done && <Check size={14} />}
+            </button>
+            <button className="delete-button" onClick={() => onDelete(item.id)} aria-label="Delete Deloitte note">
+              <Trash2 size={15} />
             </button>
           </div>
         </article>

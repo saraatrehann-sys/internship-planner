@@ -59,7 +59,7 @@ a {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 276px minmax(0, 1fr);
+  grid-template-columns: 208px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -69,8 +69,8 @@ a {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 42px;
-  padding: 34px 22px;
+  gap: 30px;
+  padding: 28px 14px;
   border-right: 1px solid var(--line);
   background: #1f252e;
 }
@@ -112,11 +112,11 @@ nav button,
 }
 
 nav button {
-  min-height: 46px;
+  min-height: 40px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 13px;
+  gap: 9px;
+  padding: 0 10px;
   border-radius: var(--radius);
   text-align: left;
 }
@@ -581,7 +581,7 @@ select {
 
 .meeting-row {
   display: grid;
-  grid-template-columns: 132px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 170px;
   gap: 0;
   padding: 0;
 }
@@ -592,7 +592,7 @@ select {
 
 .task-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 170px;
+  grid-template-columns: 42px minmax(0, 1fr) 170px 42px;
   gap: 0;
   align-items: start;
   padding: 0;
@@ -600,7 +600,8 @@ select {
 
 .task-row button,
 .todo-row button,
-.deloitte-footer button {
+.deloitte-footer button,
+.delete-button {
   width: 100%;
   height: 54px;
   display: inline-grid;
@@ -615,9 +616,14 @@ select {
 
 .task-row button:hover,
 .todo-row button:hover,
-.deloitte-footer button:hover {
+.deloitte-footer button:hover,
+.delete-button:hover {
   background: var(--khaki);
   color: var(--charcoal);
+}
+
+.delete-button {
+  color: rgba(223, 208, 184, 0.58);
 }
 
 .task-row.done textarea,
@@ -660,7 +666,7 @@ select {
 
 .deloitte-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 54px;
+  grid-template-columns: minmax(0, 1fr) 54px 54px;
   gap: 0;
   align-items: center;
 }
@@ -801,6 +807,7 @@ select {
   .deloitte-grid,
   .meeting-row,
   .task-row,
+  .deloitte-footer,
   .deloitte-heading-row {
     grid-template-columns: 1fr;
   }
