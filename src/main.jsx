@@ -25,7 +25,7 @@ const SUPABASE_READY = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 const roles = ["Consulting", "Product", "Software", "Finance", "Deloitte"];
 const statuses = ["Pending", "Applied", "Interview", "Rejected"];
 const chatStatuses = ["Pending", "Texted", "Followup"];
-const taskViews = ["Daily", "Weekly"];
+const taskViews = ["Daily", "Weekly", "In Progress", "Finished"];
 
 const emptyState = {
   selectedRole: "Consulting",
@@ -226,7 +226,7 @@ function App() {
   );
 
   const visibleTasks = state.tasks.filter((task) => task.scope === state.selectedTaskView);
-  const visibleDeloitte = state.deloitte.filter((person) => person.scope === state.selectedTaskView);
+  const visibleDeloitte = state.deloitte.filter((item) => item.scope === state.selectedTaskView);
 
   const updateRow = (collection, id, patch) => {
     updateState((current) => ({
@@ -263,6 +263,8 @@ function App() {
     if (["task", "tasks", "daily", "weekly", "todo", "to do"].some((word) => normalized.includes(word))) {
       if (normalized.includes("weekly")) updateState((current) => ({ ...current, selectedTaskView: "Weekly" }));
       if (normalized.includes("daily")) updateState((current) => ({ ...current, selectedTaskView: "Daily" }));
+      if (normalized.includes("progress")) updateState((current) => ({ ...current, selectedTaskView: "In Progress" }));
+      if (normalized.includes("finished") || normalized.includes("done")) updateState((current) => ({ ...current, selectedTaskView: "Finished" }));
       setPage("tasks");
       return;
     }
@@ -299,7 +301,7 @@ function App() {
       ...current,
       coffeeChats: [
         ...current.coffeeChats,
-        { id: makeId("chat"), name: "", company: "", role: "", notes: "", status: "Pending" },
+        { id: makeId("chat"), name: "", company: "", role: "", linkedin: "", notes: "", status: "Pending" },
       ],
     }));
   };
@@ -309,7 +311,16 @@ function App() {
     setPage("tasks");
     updateState((current) => ({
       ...current,
-      tasks: [...current.tasks, { id: makeId("task"), scope: current.selectedTaskView, date: "", text: "", done: false }],
+      tasks: [
+        ...current.tasks,
+        {
+          id: makeId("task"),
+          scope: current.selectedTaskView === "Finished" ? "In Progress" : current.selectedTaskView,
+          date: "",
+          text: "",
+          done: false,
+        },
+      ],
     }));
   };
 
@@ -329,7 +340,14 @@ function App() {
       ...current,
       deloitte: [
         ...current.deloitte,
-        { id: makeId("deloitte"), name: "", role: "", notes: "", todo: "", scope: current.selectedTaskView, done: false },
+        {
+          id: makeId("deloitte"),
+          heading: "",
+          notes: "",
+          date: "",
+          scope: current.selectedTaskView === "Finished" ? "In Progress" : current.selectedTaskView,
+          done: false,
+        },
       ],
     }));
   };
@@ -469,6 +487,7 @@ function App() {
                 { key: "name", label: "Name" },
                 { key: "company", label: "Company" },
                 { key: "role", label: "Role" },
+                { key: "linkedin", label: "LinkedIn" },
                 { key: "notes", label: "Notes", wide: true },
                 { key: "status", label: "Status", type: "select", options: chatStatuses },
               ]}
@@ -737,7 +756,10 @@ function TaskList({ tasks, onChange }) {
     <div className="stack-list">
       {tasks.map((task) => (
         <article className={task.done ? "task-row done" : "task-row"} key={task.id}>
-          <button onClick={() => onChange(task.id, { done: !task.done })} aria-label="Toggle task">
+          <button
+            onClick={() => onChange(task.id, { done: !task.done, scope: task.done ? "In Progress" : "Finished" })}
+            aria-label="Toggle task"
+          >
             {task.done && <Check size={14} />}
           </button>
           <textarea value={task.text} onChange={(event) => onChange(task.id, { text: event.target.value })} />
@@ -752,21 +774,32 @@ function DeloitteList({ people, onChange }) {
   if (people.length === 0) return <div className="empty-card">Use Add note box to create Deloitte notes and to-dos.</div>;
   return (
     <div className="deloitte-grid">
-      {people.map((person) => (
-        <article className="deloitte-card" key={person.id}>
-          <div className="split-row">
-            <input value={person.name} onChange={(event) => onChange(person.id, { name: event.target.value })} />
-            <select value={person.scope} onChange={(event) => onChange(person.id, { scope: event.target.value })}>
+      {people.map((item) => (
+        <article className={item.done ? "deloitte-card done" : "deloitte-card"} key={item.id}>
+          <div className="deloitte-heading-row">
+            <input
+              value={item.heading || item.name || ""}
+              onChange={(event) => onChange(item.id, { heading: event.target.value })}
+              placeholder="Heading"
+            />
+            <input type="date" value={item.date || ""} onChange={(event) => onChange(item.id, { date: event.target.value })} />
+          </div>
+          <textarea
+            className="deloitte-notes"
+            value={item.notes || ""}
+            onChange={(event) => onChange(item.id, { notes: event.target.value })}
+            placeholder="Notes"
+          />
+          <div className="deloitte-footer">
+            <select value={item.scope} onChange={(event) => onChange(item.id, { scope: event.target.value })}>
               {taskViews.map((view) => <option key={view}>{view}</option>)}
             </select>
-          </div>
-          <input value={person.role} onChange={(event) => onChange(person.id, { role: event.target.value })} />
-          <textarea value={person.notes} onChange={(event) => onChange(person.id, { notes: event.target.value })} />
-          <div className="todo-row">
-            <button onClick={() => onChange(person.id, { done: !person.done })} aria-label="Toggle Deloitte task">
-              {person.done && <Check size={14} />}
+            <button
+              onClick={() => onChange(item.id, { done: !item.done, scope: item.done ? "In Progress" : "Finished" })}
+              aria-label="Toggle Deloitte task"
+            >
+              {item.done && <Check size={14} />}
             </button>
-            <input className={person.done ? "complete" : ""} value={person.todo} onChange={(event) => onChange(person.id, { todo: event.target.value })} />
           </div>
         </article>
       ))}

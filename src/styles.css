@@ -499,24 +499,17 @@ td textarea,
 .meeting-row textarea,
 .task-row input,
 .task-row textarea,
-.deloitte-card input,
-.deloitte-card select,
-.deloitte-card textarea {
+.deloitte-heading-row input,
+.deloitte-footer select {
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
 .meeting-row textarea,
 .task-row input:last-child,
-.deloitte-card > textarea,
+.deloitte-heading-row input:last-child,
 .todo-row input {
   border-right: 0;
-}
-
-.deloitte-card > input,
-.deloitte-card > textarea,
-.todo-row {
-  border-top: 1px solid var(--line);
 }
 
 tr,
@@ -606,7 +599,8 @@ select {
 }
 
 .task-row button,
-.todo-row button {
+.todo-row button,
+.deloitte-footer button {
   width: 100%;
   height: 54px;
   display: inline-grid;
@@ -620,12 +614,14 @@ select {
 }
 
 .task-row button:hover,
-.todo-row button:hover {
+.todo-row button:hover,
+.deloitte-footer button:hover {
   background: var(--khaki);
   color: var(--charcoal);
 }
 
 .task-row.done textarea,
+.deloitte-card.done .deloitte-notes,
 .complete {
   color: rgba(223, 208, 184, 0.45);
   text-decoration: line-through;
@@ -644,10 +640,29 @@ select {
   overflow: hidden;
 }
 
-.split-row {
+.deloitte-heading-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 148px;
+  grid-template-columns: minmax(0, 1fr) 170px;
   gap: 0;
+}
+
+.deloitte-heading-row input:first-child {
+  font-size: 1.1rem;
+  font-weight: 750;
+}
+
+.deloitte-notes {
+  min-height: 190px;
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.6;
+}
+
+.deloitte-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  gap: 0;
+  align-items: center;
 }
 
 .todo-row {
@@ -786,7 +801,7 @@ select {
   .deloitte-grid,
   .meeting-row,
   .task-row,
-  .split-row {
+  .deloitte-heading-row {
     grid-template-columns: 1fr;
   }
 
