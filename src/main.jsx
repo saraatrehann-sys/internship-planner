@@ -235,7 +235,46 @@ function App() {
     }));
   };
 
+  const handleSearch = (value) => {
+    setQuery(value);
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return;
+
+    if (["deloitte", "2026"].some((word) => normalized.includes(word))) {
+      setPage("deloitte");
+      return;
+    }
+
+    const matchedRole = roles.find((role) => role.toLowerCase().includes(normalized) || normalized.includes(role.toLowerCase()));
+    if (matchedRole) {
+      updateState((current) => ({ ...current, selectedRole: matchedRole }));
+      setPage("applications");
+      return;
+    }
+
+    if (["application", "applications", "apply"].some((word) => normalized.includes(word))) {
+      setPage("applications");
+      return;
+    }
+    if (["calendar", "meeting", "meetings", "google"].some((word) => normalized.includes(word))) {
+      setPage("calendar");
+      return;
+    }
+    if (["task", "tasks", "daily", "weekly", "todo", "to do"].some((word) => normalized.includes(word))) {
+      if (normalized.includes("weekly")) updateState((current) => ({ ...current, selectedTaskView: "Weekly" }));
+      if (normalized.includes("daily")) updateState((current) => ({ ...current, selectedTaskView: "Daily" }));
+      setPage("tasks");
+      return;
+    }
+    if (["coffee", "chat", "chats", "network"].some((word) => normalized.includes(word))) {
+      setPage("coffee");
+      return;
+    }
+  };
+
   const addApplication = () => {
+    setQuery("");
+    setPage("applications");
     updateState((current) => ({
       ...current,
       applications: [
@@ -254,6 +293,8 @@ function App() {
   };
 
   const addCoffeeChat = () => {
+    setQuery("");
+    setPage("coffee");
     updateState((current) => ({
       ...current,
       coffeeChats: [
@@ -264,6 +305,8 @@ function App() {
   };
 
   const addTask = () => {
+    setQuery("");
+    setPage("tasks");
     updateState((current) => ({
       ...current,
       tasks: [...current.tasks, { id: makeId("task"), scope: current.selectedTaskView, date: "", text: "", done: false }],
@@ -271,6 +314,8 @@ function App() {
   };
 
   const addMeeting = () => {
+    setQuery("");
+    setPage("calendar");
     updateState((current) => ({
       ...current,
       meetings: [...current.meetings, { id: makeId("meeting"), time: "", title: "", notes: "" }],
@@ -278,6 +323,8 @@ function App() {
   };
 
   const addDeloitte = () => {
+    setQuery("");
+    setPage("deloitte");
     updateState((current) => ({
       ...current,
       deloitte: [
@@ -344,7 +391,7 @@ function App() {
       <main className="workspace">
         <Topbar
           query={query}
-          setQuery={setQuery}
+          setQuery={handleSearch}
           exportData={exportData}
           importData={importData}
           session={session}
@@ -434,7 +481,7 @@ function App() {
 
         {page === "deloitte" && (
           <section className="page-card">
-            <PageHeader eyebrow="Deloitte 2026" title="Deloitte network and follow-ups" action="Add note box" onAction={addDeloitte} />
+            <PageHeader eyebrow="Deloitte 2026" title="Deloitte 2026" action="Add note box" onAction={addDeloitte} />
             <TaskTabs selected={state.selectedTaskView} onSelect={(taskView) => updateState((current) => ({ ...current, selectedTaskView: taskView }))} />
             <DeloitteList people={visibleDeloitte} onChange={(id, patch) => updateRow("deloitte", id, patch)} />
           </section>
