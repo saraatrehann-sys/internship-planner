@@ -11,6 +11,7 @@ import {
   ListChecks,
   Plus,
   Search,
+  Sun,
   Upload,
   Trash2,
   Users,
@@ -27,6 +28,30 @@ const roles = ["Consulting", "Product", "Software", "Finance", "Deloitte"];
 const statuses = ["Pending", "Applied", "Interview", "Rejected"];
 const chatStatuses = ["Pending", "Texted", "Followup"];
 const taskViews = ["Daily", "Weekly", "In Progress", "Finished"];
+const summerTodos = [
+  "Deloitte internship",
+  "Artela internship call",
+  "Summer classes into two",
+  "Be Real externship",
+  "Business Today conference",
+  "Sparkit internship",
+  "Get Green internship",
+  "Meet Ceta Mena region",
+  "Do three to four product teardowns",
+  "Redesign Botim",
+  "Prepare for recruiting season",
+  "Write blogs about anything interesting in the startup space",
+  "Find few UCLA alumni mentors",
+  "Set up coffee chats",
+  "Experiment with AI",
+  "Learn SQL",
+];
+
+const defaultSummer2026 = summerTodos.map((text, index) => ({
+  id: `summer-${index + 1}`,
+  text,
+  done: false,
+}));
 
 const emptyState = {
   selectedRole: "Consulting",
@@ -37,6 +62,7 @@ const emptyState = {
   tasks: [],
   meetings: [],
   deloitte: [],
+  summer2026: defaultSummer2026,
 };
 
 const navItems = [
@@ -46,12 +72,19 @@ const navItems = [
   { id: "tasks", label: "Daily Tasks", icon: ListChecks },
   { id: "coffee", label: "Coffee Chats", icon: Coffee },
   { id: "deloitte", label: "Deloitte 2026", icon: Users },
+  { id: "summer", label: "Summer 2026", icon: Sun },
 ];
 
 function loadState() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? { ...emptyState, ...JSON.parse(saved) } : emptyState;
+    if (!saved) return emptyState;
+    const parsed = JSON.parse(saved);
+    return {
+      ...emptyState,
+      ...parsed,
+      summer2026: parsed.summer2026?.length ? parsed.summer2026 : defaultSummer2026,
+    };
   } catch {
     return emptyState;
   }
@@ -161,7 +194,11 @@ function App() {
         const cloudState = await loadCloudPlanner(session);
         if (cancelled) return;
         if (cloudState) {
-          const merged = { ...emptyState, ...cloudState };
+          const merged = {
+            ...emptyState,
+            ...cloudState,
+            summer2026: cloudState.summer2026?.length ? cloudState.summer2026 : defaultSummer2026,
+          };
           setState(merged);
           saveState(merged);
         } else {
@@ -250,6 +287,11 @@ function App() {
 
     if (["deloitte", "2026"].some((word) => normalized.includes(word))) {
       setPage("deloitte");
+      return;
+    }
+
+    if (["summer", "summer 2026"].some((word) => normalized.includes(word))) {
+      setPage("summer");
       return;
     }
 
@@ -357,6 +399,15 @@ function App() {
           done: false,
         },
       ],
+    }));
+  };
+
+  const addSummerTodo = () => {
+    setQuery("");
+    setPage("summer");
+    updateState((current) => ({
+      ...current,
+      summer2026: [...current.summer2026, { id: makeId("summer"), text: "", done: false }],
     }));
   };
 
@@ -511,6 +562,17 @@ function App() {
             <PageHeader eyebrow="Deloitte 2026" title="Deloitte 2026" action="Add note box" onAction={addDeloitte} />
             <TaskTabs selected={state.selectedTaskView} onSelect={(taskView) => updateState((current) => ({ ...current, selectedTaskView: taskView }))} />
             <DeloitteList people={visibleDeloitte} onChange={(id, patch) => updateRow("deloitte", id, patch)} onDelete={(id) => deleteRow("deloitte", id)} />
+          </section>
+        )}
+
+        {page === "summer" && (
+          <section className="page-card">
+            <PageHeader eyebrow="Summer 2026" title="To-dos" action="Add item" onAction={addSummerTodo} />
+            <SummerTodoList
+              items={state.summer2026}
+              onChange={(id, patch) => updateRow("summer2026", id, patch)}
+              onDelete={(id) => deleteRow("summer2026", id)}
+            />
           </section>
         )}
       </main>
@@ -815,6 +877,26 @@ function DeloitteList({ people, onChange, onDelete }) {
               <Trash2 size={15} />
             </button>
           </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function SummerTodoList({ items, onChange, onDelete }) {
+  if (items.length === 0) return <div className="empty-card">Use Add item to create your Summer 2026 to-do list.</div>;
+  return (
+    <div className="summer-list">
+      {items.map((item, index) => (
+        <article className={item.done ? "summer-row done" : "summer-row"} key={item.id}>
+          <span>{index + 1}</span>
+          <button onClick={() => onChange(item.id, { done: !item.done })} aria-label="Toggle Summer 2026 item">
+            {item.done && <Check size={14} />}
+          </button>
+          <input value={item.text} onChange={(event) => onChange(item.id, { text: event.target.value })} />
+          <button className="delete-button" onClick={() => onDelete(item.id)} aria-label="Delete Summer 2026 item">
+            <Trash2 size={15} />
+          </button>
         </article>
       ))}
     </div>

@@ -515,14 +515,16 @@ td textarea,
 tr,
 .meeting-row,
 .task-row,
-.deloitte-card {
+.deloitte-card,
+.summer-row {
   transition: background-color 180ms ease, border-color 180ms ease;
 }
 
 tr:hover td,
 .meeting-row:hover,
 .task-row:hover,
-.deloitte-card:hover {
+.deloitte-card:hover,
+.summer-row:hover {
   background: rgba(57, 62, 70, 0.28);
 }
 
@@ -573,7 +575,8 @@ select {
 
 .meeting-row,
 .task-row,
-.deloitte-card {
+.deloitte-card,
+.summer-row {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: rgba(34, 40, 49, 0.62);
@@ -676,6 +679,54 @@ select {
   grid-template-columns: 42px minmax(0, 1fr);
   gap: 0;
   align-items: center;
+}
+
+.summer-list {
+  display: grid;
+  gap: 10px;
+}
+
+.summer-row {
+  display: grid;
+  grid-template-columns: 52px 42px minmax(0, 1fr) 42px;
+  align-items: center;
+  overflow: hidden;
+}
+
+.summer-row > span {
+  display: grid;
+  place-items: center;
+  height: 54px;
+  border-right: 1px solid var(--line);
+  color: var(--khaki);
+  font-weight: 800;
+}
+
+.summer-row button {
+  width: 100%;
+  height: 54px;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: rgba(57, 62, 70, 0.5);
+  color: var(--sand);
+}
+
+.summer-row button:hover {
+  background: var(--khaki);
+  color: var(--charcoal);
+}
+
+.summer-row input {
+  min-height: 54px;
+  padding: 14px;
+  border-right: 1px solid var(--line);
+}
+
+.summer-row.done input {
+  color: rgba(223, 208, 184, 0.45);
+  text-decoration: line-through;
 }
 
 .auth-page {
@@ -807,6 +858,7 @@ select {
   .deloitte-grid,
   .meeting-row,
   .task-row,
+  .summer-row,
   .deloitte-footer,
   .deloitte-heading-row {
     grid-template-columns: 1fr;
