@@ -102,13 +102,7 @@ function loadState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return emptyState;
     const parsed = JSON.parse(saved);
-    return {
-      ...emptyState,
-      ...parsed,
-      tasks: (parsed.tasks || []).map((task) => ({ ...task, day: task.day || todayKey() })),
-      summer2026: parsed.summer2026?.length ? parsed.summer2026 : defaultSummer2026,
-      deletedItems: parsed.deletedItems || [],
-    };
+    return normalizePlannerState(parsed);
   } catch {
     return emptyState;
   }
@@ -204,6 +198,45 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function normalizePlannerState(source = {}) {
+  return {
+    ...emptyState,
+    ...source,
+    applications: source.applications || [],
+    coffeeChats: source.coffeeChats || [],
+    tasks: (source.tasks || []).map((task) => ({ ...task, day: task.day || todayKey() })),
+    meetings: source.meetings || [],
+    deloitte: source.deloitte || [],
+    notes: source.notes || [],
+    summer2026: source.summer2026?.length ? source.summer2026 : defaultSummer2026,
+    deletedItems: source.deletedItems || [],
+  };
+}
+
+function mergeRows(cloudRows = [], localRows = []) {
+  const merged = new Map();
+  localRows.forEach((row) => merged.set(row.id, row));
+  cloudRows.forEach((row) => merged.set(row.id, { ...merged.get(row.id), ...row }));
+  return [...merged.values()];
+}
+
+function mergePlannerStates(localState, cloudState) {
+  const local = normalizePlannerState(localState);
+  const cloud = normalizePlannerState(cloudState);
+  return {
+    ...local,
+    ...cloud,
+    applications: mergeRows(cloud.applications, local.applications),
+    coffeeChats: mergeRows(cloud.coffeeChats, local.coffeeChats),
+    tasks: mergeRows(cloud.tasks, local.tasks),
+    meetings: mergeRows(cloud.meetings, local.meetings),
+    deloitte: mergeRows(cloud.deloitte, local.deloitte),
+    notes: mergeRows(cloud.notes, local.notes),
+    summer2026: mergeRows(cloud.summer2026, local.summer2026),
+    deletedItems: mergeRows(cloud.deletedItems, local.deletedItems),
+  };
+}
+
 function App() {
   const [state, setState] = useState(loadState);
   const [undoStack, setUndoStack] = useState([]);
@@ -226,13 +259,7 @@ function App() {
         const cloudState = await loadCloudPlanner(session);
         if (cancelled) return;
         if (cloudState) {
-          const merged = {
-            ...emptyState,
-            ...cloudState,
-            tasks: (cloudState.tasks || []).map((task) => ({ ...task, day: task.day || todayKey() })),
-            summer2026: cloudState.summer2026?.length ? cloudState.summer2026 : defaultSummer2026,
-            deletedItems: cloudState.deletedItems || [],
-          };
+          const merged = mergePlannerStates(state, cloudState);
           setState(merged);
           saveState(merged);
         } else {
