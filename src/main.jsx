@@ -841,12 +841,22 @@ function MeetingList({ meetings, onChange, onDelete }) {
     <div className="stack-list">
       {meetings.map((meeting) => (
         <article className="meeting-row" key={meeting.id}>
-          <textarea rows={1} value={meeting.title} onChange={(event) => onChange(meeting.id, { title: event.target.value })} />
+          <textarea
+            rows={1}
+            value={meeting.title}
+            onChange={(event) => onChange(meeting.id, { title: event.target.value })}
+            placeholder="Heading"
+          />
           <input type="date" value={meeting.date || ""} onChange={(event) => onChange(meeting.id, { date: event.target.value })} />
           <button className="delete-button" onClick={() => onDelete(meeting.id)} aria-label="Delete meeting note">
             <Trash2 size={15} />
           </button>
-          <textarea className="meeting-notes" value={meeting.notes} onChange={(event) => onChange(meeting.id, { notes: event.target.value })} />
+          <textarea
+            className="meeting-notes"
+            value={meeting.notes}
+            onChange={(event) => onChange(meeting.id, { notes: event.target.value })}
+            placeholder="Notes"
+          />
         </article>
       ))}
     </div>

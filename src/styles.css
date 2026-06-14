@@ -720,9 +720,11 @@ select {
 }
 
 .deloitte-heading-row input:first-child,
-.deloitte-heading-row textarea:first-child {
-  font-size: 1.1rem;
-  font-weight: 750;
+.deloitte-heading-row textarea:first-child,
+.meeting-row textarea:first-child {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.45;
 }
 
 .deloitte-notes {
