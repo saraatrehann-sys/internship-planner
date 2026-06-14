@@ -733,6 +733,41 @@ select {
   gap: 12px;
 }
 
+.notes-list {
+  display: grid;
+  gap: 14px;
+}
+
+.note-row {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 42px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 246, 244, 0.62);
+}
+
+.note-row > span {
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+  border-right: 1px solid var(--line);
+  color: var(--khaki);
+  font-weight: 800;
+}
+
+.note-row textarea {
+  min-height: 96px;
+  padding: 16px;
+  border-right: 1px solid var(--line);
+  line-height: 1.55;
+}
+
+.note-row button {
+  width: 100%;
+  min-height: 96px;
+}
+
 .deleted-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 118px 42px;

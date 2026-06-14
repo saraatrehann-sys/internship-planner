@@ -7,6 +7,7 @@ import {
   Coffee,
   Download,
   ExternalLink,
+  FileText,
   Home,
   ArchiveRestore,
   ListChecks,
@@ -80,6 +81,7 @@ const emptyState = {
   meetings: [],
   deloitte: [],
   summer2026: defaultSummer2026,
+  notes: [],
   deletedItems: [],
 };
 
@@ -89,6 +91,7 @@ const navItems = [
   { id: "calendar", label: "Google Calendar", icon: CalendarDays },
   { id: "tasks", label: "Daily Tasks", icon: ListChecks },
   { id: "coffee", label: "Coffee Chats", icon: Coffee },
+  { id: "notes", label: "Notes", icon: FileText },
   { id: "deloitte", label: "Deloitte 2026", icon: Users },
   { id: "summer", label: "Summer 2026", icon: Sun },
   { id: "deleted", label: "Recently Deleted", icon: ArchiveRestore },
@@ -319,6 +322,10 @@ function App() {
     `${item.name} ${item.company} ${item.role} ${item.notes}`.toLowerCase().includes(query.toLowerCase()),
   );
 
+  const visibleNotes = state.notes.filter((item) =>
+    `${item.text}`.toLowerCase().includes(query.toLowerCase()),
+  );
+
   const visibleTasks = state.tasks.filter((task) => {
     if (state.selectedTaskView === "Finished") return task.done || task.scope === "Finished";
     if (state.selectedTaskView === "In Progress") return task.scope === "In Progress" && !task.done;
@@ -389,6 +396,11 @@ function App() {
 
     if (["deleted", "recently deleted", "trash", "archive"].some((word) => normalized.includes(word))) {
       setPage("deleted");
+      return;
+    }
+
+    if (["note", "notes"].some((word) => normalized.includes(word))) {
+      setPage("notes");
       return;
     }
 
@@ -499,6 +511,15 @@ function App() {
           priority: "",
         },
       ],
+    }));
+  };
+
+  const addNote = () => {
+    setQuery("");
+    setPage("notes");
+    updateState((current) => ({
+      ...current,
+      notes: [...current.notes, { id: makeId("note"), text: "" }],
     }));
   };
 
@@ -664,6 +685,17 @@ function App() {
               empty="No coffee chats yet."
               onChange={(id, patch) => updateRow("coffeeChats", id, patch)}
               onDelete={(id) => deleteRow("coffeeChats", id)}
+            />
+          </section>
+        )}
+
+        {page === "notes" && (
+          <section className="page-card">
+            <PageHeader eyebrow="Notes" title="Notes" action="Add note" onAction={addNote} />
+            <NoteList
+              notes={visibleNotes}
+              onChange={(id, patch) => updateRow("notes", id, patch)}
+              onDelete={(id) => deleteRow("notes", id)}
             />
           </section>
         )}
@@ -986,6 +1018,27 @@ function MeetingList({ meetings, onChange, onDelete }) {
   );
 }
 
+function NoteList({ notes, onChange, onDelete }) {
+  if (notes.length === 0) return <div className="empty-card">Use Add note to create a numbered note box.</div>;
+  return (
+    <div className="notes-list">
+      {notes.map((note, index) => (
+        <article className="note-row" key={note.id}>
+          <span>{index + 1}</span>
+          <textarea
+            value={note.text || ""}
+            onChange={(event) => onChange(note.id, { text: event.target.value })}
+            placeholder="Write a note"
+          />
+          <button className="delete-button" onClick={() => onDelete(note.id)} aria-label="Delete note">
+            <Trash2 size={15} />
+          </button>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function TaskList({ tasks, onChange, onDelete }) {
   if (tasks.length === 0) return <div className="empty-card">Use Add task box to create a checkbox and writing space.</div>;
   return (
@@ -1080,6 +1133,7 @@ function collectionLabel(collection) {
     coffeeChats: "Coffee chat",
     meetings: "Meeting note",
     tasks: "Task",
+    notes: "Note",
     deloitte: "Deloitte note",
     summer2026: "Summer 2026",
   };
