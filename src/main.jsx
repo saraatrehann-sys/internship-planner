@@ -750,6 +750,7 @@ function AuraQuoteCarousel() {
   return (
     <div className="quote-panel aura-panel" aria-label="Motivational quote carousel">
       <div key={activeIndex} className="aura-quote-card">
+        <span>YOU CAN DO IT SARA!!</span>
         <p>{auraQuotes[activeIndex]}</p>
       </div>
     </div>
