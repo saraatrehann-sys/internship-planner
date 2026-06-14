@@ -483,6 +483,13 @@ td.wide {
   min-width: 320px;
 }
 
+th.action-column,
+td.action-column {
+  width: 68px;
+  min-width: 68px;
+  text-align: center;
+}
+
 input,
 select,
 textarea {
@@ -606,7 +613,7 @@ select {
 
 .meeting-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 170px;
+  grid-template-columns: minmax(0, 1fr) 170px 42px;
   gap: 0;
   padding: 0;
 }
@@ -625,8 +632,10 @@ select {
 
 .task-row button,
 .todo-row button,
+.meeting-row button,
 .deloitte-footer button,
-.delete-button {
+.delete-button,
+.table-delete-button {
   width: 100%;
   height: 54px;
   display: inline-grid;
@@ -641,14 +650,23 @@ select {
 
 .task-row button:hover,
 .todo-row button:hover,
+.meeting-row button:hover,
 .deloitte-footer button:hover,
-.delete-button:hover {
+.delete-button:hover,
+.table-delete-button:hover {
   background: var(--khaki);
   color: var(--charcoal);
 }
 
-.delete-button {
+.delete-button,
+.table-delete-button {
   color: rgba(223, 208, 184, 0.58);
+}
+
+.table-delete-button {
+  border: 0;
+  border-radius: 0;
+  background: rgba(57, 62, 70, 0.32);
 }
 
 .task-row.done textarea,

@@ -516,6 +516,7 @@ function App() {
               rows={roleApplications}
               empty={`No ${state.selectedRole} applications yet.`}
               onChange={(id, patch) => updateRow("applications", id, patch)}
+              onDelete={(id) => deleteRow("applications", id)}
             />
           </section>
         )}
@@ -536,7 +537,11 @@ function App() {
               </label>
             </div>
             <CalendarEmbed value={state.calendarEmbedUrl} />
-            <MeetingList meetings={state.meetings} onChange={(id, patch) => updateRow("meetings", id, patch)} />
+            <MeetingList
+              meetings={state.meetings}
+              onChange={(id, patch) => updateRow("meetings", id, patch)}
+              onDelete={(id) => deleteRow("meetings", id)}
+            />
           </section>
         )}
 
@@ -563,6 +568,7 @@ function App() {
               rows={visibleCoffeeChats}
               empty="No coffee chats yet."
               onChange={(id, patch) => updateRow("coffeeChats", id, patch)}
+              onDelete={(id) => deleteRow("coffeeChats", id)}
             />
           </section>
         )}
@@ -761,13 +767,14 @@ function TaskTabs({ selected, onSelect }) {
   );
 }
 
-function EditableTable({ columns, rows, empty, onChange }) {
+function EditableTable({ columns, rows, empty, onChange, onDelete }) {
   return (
     <div className="table-wrap">
       <table>
         <thead>
           <tr>
             {columns.map((column) => <th key={column.key} className={column.wide ? "wide" : ""}>{column.label}</th>)}
+            {onDelete && <th className="action-column">Delete</th>}
           </tr>
         </thead>
         <tbody>
@@ -786,11 +793,18 @@ function EditableTable({ columns, rows, empty, onChange }) {
                   )}
                 </td>
               ))}
+              {onDelete && (
+                <td className="action-column">
+                  <button className="table-delete-button" onClick={() => onDelete(row.id)} aria-label="Delete row">
+                    <Trash2 size={15} />
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
           {rows.length === 0 && (
             <tr>
-              <td className="empty" colSpan={columns.length}>{empty}</td>
+              <td className="empty" colSpan={columns.length + (onDelete ? 1 : 0)}>{empty}</td>
             </tr>
           )}
         </tbody>
@@ -821,7 +835,7 @@ function normalizeCalendarEmbed(value = "") {
   return url;
 }
 
-function MeetingList({ meetings, onChange }) {
+function MeetingList({ meetings, onChange, onDelete }) {
   if (meetings.length === 0) return <div className="empty-card">Use Add meeting note to create a writable row.</div>;
   return (
     <div className="stack-list">
@@ -829,6 +843,9 @@ function MeetingList({ meetings, onChange }) {
         <article className="meeting-row" key={meeting.id}>
           <textarea rows={1} value={meeting.title} onChange={(event) => onChange(meeting.id, { title: event.target.value })} />
           <input type="date" value={meeting.date || ""} onChange={(event) => onChange(meeting.id, { date: event.target.value })} />
+          <button className="delete-button" onClick={() => onDelete(meeting.id)} aria-label="Delete meeting note">
+            <Trash2 size={15} />
+          </button>
           <textarea className="meeting-notes" value={meeting.notes} onChange={(event) => onChange(meeting.id, { notes: event.target.value })} />
         </article>
       ))}
