@@ -515,6 +515,7 @@ td textarea,
 .task-row input,
 .task-row textarea,
 .deloitte-heading-row input,
+.deloitte-heading-row textarea,
 .deloitte-footer select {
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -523,6 +524,7 @@ td textarea,
 .meeting-row textarea,
 .task-row input:last-child,
 .deloitte-heading-row input:last-child,
+.deloitte-heading-row textarea:last-child,
 .todo-row input {
   border-right: 0;
 }
@@ -546,6 +548,11 @@ tr:hover td,
 textarea {
   min-height: 54px;
   resize: vertical;
+  field-sizing: content;
+  overflow: hidden;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 input:focus,
@@ -604,13 +611,13 @@ select {
   padding: 0;
 }
 
-.meeting-row textarea {
+.meeting-row .meeting-notes {
   grid-column: 1 / -1;
 }
 
 .task-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 170px 42px;
+  grid-template-columns: 42px minmax(0, 1fr) 170px 118px 42px;
   gap: 0;
   align-items: start;
   padding: 0;
@@ -646,9 +653,33 @@ select {
 
 .task-row.done textarea,
 .deloitte-card.done .deloitte-notes,
+.summer-row.done textarea,
 .complete {
   color: rgba(223, 208, 184, 0.45);
   text-decoration: line-through;
+}
+
+.priority-urgent {
+  background: linear-gradient(0deg, rgba(188, 82, 82, 0.22), rgba(188, 82, 82, 0.22)), rgba(34, 40, 49, 0.62);
+  border-color: rgba(238, 156, 156, 0.38);
+}
+
+.priority-yellow {
+  background: linear-gradient(0deg, rgba(214, 182, 91, 0.2), rgba(214, 182, 91, 0.2)), rgba(34, 40, 49, 0.62);
+  border-color: rgba(223, 208, 184, 0.34);
+}
+
+.priority-green {
+  background: linear-gradient(0deg, rgba(104, 158, 118, 0.2), rgba(104, 158, 118, 0.2)), rgba(34, 40, 49, 0.62);
+  border-color: rgba(162, 210, 174, 0.34);
+}
+
+.priority-select {
+  min-height: 54px;
+  padding: 0 30px 0 12px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--sand);
 }
 
 .deloitte-grid {
@@ -670,7 +701,8 @@ select {
   gap: 0;
 }
 
-.deloitte-heading-row input:first-child {
+.deloitte-heading-row input:first-child,
+.deloitte-heading-row textarea:first-child {
   font-size: 1.1rem;
   font-weight: 750;
 }
@@ -684,7 +716,7 @@ select {
 
 .deloitte-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 54px 54px;
+  grid-template-columns: minmax(0, 1fr) 118px 54px 54px;
   gap: 0;
   align-items: center;
 }
@@ -703,7 +735,7 @@ select {
 
 .summer-row {
   display: grid;
-  grid-template-columns: 52px 42px minmax(0, 1fr) 42px;
+  grid-template-columns: 52px 42px minmax(0, 1fr) 118px 42px;
   align-items: center;
   overflow: hidden;
 }
@@ -733,15 +765,11 @@ select {
   color: var(--charcoal);
 }
 
-.summer-row input {
+.summer-row input,
+.summer-row textarea {
   min-height: 54px;
   padding: 14px;
   border-right: 1px solid var(--line);
-}
-
-.summer-row.done input {
-  color: rgba(223, 208, 184, 0.45);
-  text-decoration: line-through;
 }
 
 .auth-page {

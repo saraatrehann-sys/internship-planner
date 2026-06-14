@@ -28,6 +28,12 @@ const roles = ["Consulting", "Product", "Software", "Finance", "Deloitte"];
 const statuses = ["Pending", "Applied", "Interview", "Rejected"];
 const chatStatuses = ["Pending", "Texted", "Followup"];
 const taskViews = ["Daily", "Weekly", "In Progress", "Finished"];
+const priorityTags = [
+  { value: "", label: "Tag" },
+  { value: "urgent", label: "Urgent" },
+  { value: "yellow", label: "Yellow" },
+  { value: "green", label: "Green" },
+];
 const summerTodos = [
   "Deloitte internship",
   "Artela internship call",
@@ -51,6 +57,7 @@ const defaultSummer2026 = summerTodos.map((text, index) => ({
   id: `summer-${index + 1}`,
   text,
   done: false,
+  priority: "",
 }));
 
 const emptyState = {
@@ -369,6 +376,7 @@ function App() {
           date: "",
           text: "",
           done: false,
+          priority: "",
         },
       ],
     }));
@@ -397,6 +405,7 @@ function App() {
           date: "",
           scope: current.selectedTaskView === "Finished" ? "In Progress" : current.selectedTaskView,
           done: false,
+          priority: "",
         },
       ],
     }));
@@ -407,7 +416,7 @@ function App() {
     setPage("summer");
     updateState((current) => ({
       ...current,
-      summer2026: [...current.summer2026, { id: makeId("summer"), text: "", done: false }],
+      summer2026: [...current.summer2026, { id: makeId("summer"), text: "", done: false, priority: "" }],
     }));
   };
 
@@ -772,10 +781,8 @@ function EditableTable({ columns, rows, empty, onChange }) {
                     </select>
                   ) : column.type === "date" ? (
                     <input type="date" value={row[column.key]} onChange={(event) => onChange(row.id, { [column.key]: event.target.value })} />
-                  ) : column.wide ? (
-                    <textarea value={row[column.key]} onChange={(event) => onChange(row.id, { [column.key]: event.target.value })} />
                   ) : (
-                    <input value={row[column.key]} onChange={(event) => onChange(row.id, { [column.key]: event.target.value })} />
+                    <textarea rows={1} value={row[column.key] || ""} onChange={(event) => onChange(row.id, { [column.key]: event.target.value })} />
                   )}
                 </td>
               ))}
@@ -820,9 +827,9 @@ function MeetingList({ meetings, onChange }) {
     <div className="stack-list">
       {meetings.map((meeting) => (
         <article className="meeting-row" key={meeting.id}>
-          <input value={meeting.title} onChange={(event) => onChange(meeting.id, { title: event.target.value })} />
+          <textarea rows={1} value={meeting.title} onChange={(event) => onChange(meeting.id, { title: event.target.value })} />
           <input type="date" value={meeting.date || ""} onChange={(event) => onChange(meeting.id, { date: event.target.value })} />
-          <textarea value={meeting.notes} onChange={(event) => onChange(meeting.id, { notes: event.target.value })} />
+          <textarea className="meeting-notes" value={meeting.notes} onChange={(event) => onChange(meeting.id, { notes: event.target.value })} />
         </article>
       ))}
     </div>
@@ -834,7 +841,7 @@ function TaskList({ tasks, onChange, onDelete }) {
   return (
     <div className="stack-list">
       {tasks.map((task) => (
-        <article className={task.done ? "task-row done" : "task-row"} key={task.id}>
+        <article className={`task-row ${task.done ? "done" : ""} ${priorityClass(task.priority)}`} key={task.id}>
           <button
             onClick={() => onChange(task.id, { done: !task.done, scope: task.done ? "In Progress" : "Finished" })}
             aria-label="Toggle task"
@@ -843,6 +850,7 @@ function TaskList({ tasks, onChange, onDelete }) {
           </button>
           <textarea value={task.text} onChange={(event) => onChange(task.id, { text: event.target.value })} />
           <input type="date" value={task.date} onChange={(event) => onChange(task.id, { date: event.target.value })} />
+          <PrioritySelect value={task.priority || ""} onChange={(priority) => onChange(task.id, { priority })} />
           <button className="delete-button" onClick={() => onDelete(task.id)} aria-label="Delete task">
             <Trash2 size={15} />
           </button>
@@ -857,9 +865,10 @@ function DeloitteList({ people, onChange, onDelete }) {
   return (
     <div className="deloitte-grid">
       {people.map((item) => (
-        <article className={item.done ? "deloitte-card done" : "deloitte-card"} key={item.id}>
+        <article className={`deloitte-card ${item.done ? "done" : ""} ${priorityClass(item.priority)}`} key={item.id}>
           <div className="deloitte-heading-row">
-            <input
+            <textarea
+              rows={1}
               value={item.heading || item.name || ""}
               onChange={(event) => onChange(item.id, { heading: event.target.value })}
               placeholder="Heading"
@@ -876,6 +885,7 @@ function DeloitteList({ people, onChange, onDelete }) {
             <select value={item.scope} onChange={(event) => onChange(item.id, { scope: event.target.value })}>
               {taskViews.map((view) => <option key={view}>{view}</option>)}
             </select>
+            <PrioritySelect value={item.priority || ""} onChange={(priority) => onChange(item.id, { priority })} />
             <button
               onClick={() => onChange(item.id, { done: !item.done, scope: item.done ? "In Progress" : "Finished" })}
               aria-label="Toggle Deloitte task"
@@ -897,12 +907,13 @@ function SummerTodoList({ items, onChange, onDelete }) {
   return (
     <div className="summer-list">
       {items.map((item, index) => (
-        <article className={item.done ? "summer-row done" : "summer-row"} key={item.id}>
+        <article className={`summer-row ${item.done ? "done" : ""} ${priorityClass(item.priority)}`} key={item.id}>
           <span>{index + 1}</span>
           <button onClick={() => onChange(item.id, { done: !item.done })} aria-label="Toggle Summer 2026 item">
             {item.done && <Check size={14} />}
           </button>
-          <input value={item.text} onChange={(event) => onChange(item.id, { text: event.target.value })} />
+          <textarea rows={1} value={item.text} onChange={(event) => onChange(item.id, { text: event.target.value })} />
+          <PrioritySelect value={item.priority || ""} onChange={(priority) => onChange(item.id, { priority })} />
           <button className="delete-button" onClick={() => onDelete(item.id)} aria-label="Delete Summer 2026 item">
             <Trash2 size={15} />
           </button>
@@ -910,6 +921,18 @@ function SummerTodoList({ items, onChange, onDelete }) {
       ))}
     </div>
   );
+}
+
+function PrioritySelect({ value, onChange }) {
+  return (
+    <select className="priority-select" value={value} onChange={(event) => onChange(event.target.value)} aria-label="Priority tag">
+      {priorityTags.map((tag) => <option key={tag.value} value={tag.value}>{tag.label}</option>)}
+    </select>
+  );
+}
+
+function priorityClass(priority) {
+  return priority ? `priority-${priority}` : "";
 }
 
 createRoot(document.getElementById("root")).render(<App />);
