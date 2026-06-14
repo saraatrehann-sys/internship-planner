@@ -747,25 +747,11 @@ function AuraQuoteCarousel() {
     return () => window.clearInterval(interval);
   }, []);
 
-  const getPosition = (index) => {
-    const total = auraQuotes.length;
-    const diff = (index - activeIndex + total) % total;
-    if (diff === 0) return "center";
-    if (diff === 1) return "right";
-    if (diff === total - 1) return "left";
-    return "hidden";
-  };
-
   return (
     <div className="quote-panel aura-panel" aria-label="Motivational quote carousel">
-      {auraQuotes.map((quote, index) => {
-        const position = getPosition(index);
-        return (
-          <div key={quote} className={`aura-quote-card ${position}`} aria-hidden={position === "hidden"}>
-            <p>{quote}</p>
-          </div>
-        );
-      })}
+      <div key={activeIndex} className="aura-quote-card">
+        <p>{auraQuotes[activeIndex]}</p>
+      </div>
     </div>
   );
 }

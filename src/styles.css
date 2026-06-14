@@ -253,7 +253,8 @@ nav button.active {
 .quote-panel {
   min-height: 520px;
   position: relative;
-  display: block;
+  display: grid;
+  place-items: center;
   padding: clamp(28px, 6vw, 74px);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -283,62 +284,34 @@ nav button.active {
 }
 
 .aura-quote-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(720px, 62vw);
-  min-height: 210px;
+  width: min(960px, 86%);
   display: grid;
   place-items: center;
-  padding: clamp(24px, 4vw, 52px);
-  border: 1px solid rgba(184, 50, 50, 0.16);
-  border-radius: 6px;
-  background: rgba(255, 246, 244, 0.62);
-  box-shadow: 0 26px 80px rgba(123, 26, 42, 0.16);
-  transition:
-    transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 900ms ease,
-    filter 900ms ease;
+  animation: quoteFadeSlide 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .aura-quote-card p {
   margin: 0;
   color: var(--aura-red);
   font-family: Didot, "Bodoni 72", "Bodoni 72 Oldstyle", "Baskerville", Georgia, serif;
-  font-size: clamp(2.5rem, 6vw, 5.8rem);
+  font-size: clamp(2.4rem, 5.2vw, 5rem);
   font-weight: 400;
-  line-height: 0.95;
+  line-height: 1.02;
   letter-spacing: -0.02em;
   text-align: center;
+  text-wrap: balance;
 }
 
-.aura-quote-card.center {
-  z-index: 3;
-  opacity: 1;
-  filter: blur(0);
-  transform: translate(-50%, -50%) scale(1);
-}
+@keyframes quoteFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
 
-.aura-quote-card.left {
-  z-index: 1;
-  opacity: 0.48;
-  filter: blur(6px);
-  transform: translate(-128%, -50%) scale(0.78);
-}
-
-.aura-quote-card.right {
-  z-index: 1;
-  opacity: 0.48;
-  filter: blur(6px);
-  transform: translate(28%, -50%) scale(0.78);
-}
-
-.aura-quote-card.hidden {
-  z-index: 0;
-  opacity: 0;
-  pointer-events: none;
-  filter: blur(10px);
-  transform: translate(108%, -50%) scale(0.7);
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .landing-grid {
@@ -387,7 +360,7 @@ nav button.active {
 }
 
 .choice-grid.role-grid {
-  grid-template-columns: repeat(4, minmax(118px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .choice-grid.two {
