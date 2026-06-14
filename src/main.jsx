@@ -28,7 +28,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const SUPABASE_READY = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-const roles = ["Consulting", "Product", "Software", "Finance", "Deloitte"];
+const roles = ["Consulting", "Product", "Software", "Finance", "Deloitte", "Other"];
 const statuses = ["Pending", "Applied", "Interview", "Rejected"];
 const chatStatuses = ["Pending", "Texted", "Followup"];
 const taskViews = ["Daily", "Weekly", "In Progress", "Finished"];
@@ -210,6 +210,8 @@ function App() {
   const [redoStack, setRedoStack] = useState([]);
   const [page, setPage] = useState("home");
   const [query, setQuery] = useState("");
+  const [applicationCompanyFilter, setApplicationCompanyFilter] = useState("");
+  const [coffeeCompanyFilter, setCoffeeCompanyFilter] = useState("");
   const [session, setSession] = useState(loadSession);
   const [cloudReady, setCloudReady] = useState(!SUPABASE_READY);
   const [syncStatus, setSyncStatus] = useState(SUPABASE_READY ? "Sign in to sync" : "Local only");
@@ -313,14 +315,22 @@ function App() {
   const roleApplications = useMemo(() => {
     return state.applications.filter((item) => {
       const roleMatch = item.role === state.selectedRole;
+      const companyMatch = !applicationCompanyFilter || item.company === applicationCompanyFilter;
       const searchMatch = `${item.applicationName} ${item.company} ${item.role} ${item.notes}`.toLowerCase().includes(query.toLowerCase());
-      return roleMatch && searchMatch;
+      return roleMatch && companyMatch && searchMatch;
     });
-  }, [state.applications, state.selectedRole, query]);
+  }, [state.applications, state.selectedRole, applicationCompanyFilter, query]);
+
+  const applicationCompanies = useMemo(() => {
+    return uniqueCompanies(state.applications.filter((item) => item.role === state.selectedRole));
+  }, [state.applications, state.selectedRole]);
 
   const visibleCoffeeChats = state.coffeeChats.filter((item) =>
-    `${item.name} ${item.company} ${item.role} ${item.notes}`.toLowerCase().includes(query.toLowerCase()),
+    (!coffeeCompanyFilter || item.company === coffeeCompanyFilter)
+    && `${item.name} ${item.company} ${item.role} ${item.notes}`.toLowerCase().includes(query.toLowerCase()),
   );
+
+  const coffeeCompanies = useMemo(() => uniqueCompanies(state.coffeeChats), [state.coffeeChats]);
 
   const visibleNotes = state.notes.filter((item) =>
     `${item.text}`.toLowerCase().includes(query.toLowerCase()),
@@ -620,6 +630,12 @@ function App() {
               onAction={addApplication}
             />
             <RoleTabs selected={state.selectedRole} onSelect={(role) => updateState((current) => ({ ...current, selectedRole: role }))} />
+            <CompanyFilter
+              label="Company filter"
+              value={applicationCompanyFilter}
+              companies={applicationCompanies}
+              onChange={setApplicationCompanyFilter}
+            />
             <EditableTable
               columns={[
                 { key: "applicationName", label: "Application" },
@@ -672,6 +688,12 @@ function App() {
         {page === "coffee" && (
           <section className="page-card">
             <PageHeader eyebrow="Networking" title="Coffee chats" action="Add row" onAction={addCoffeeChat} />
+            <CompanyFilter
+              label="Company filter"
+              value={coffeeCompanyFilter}
+              companies={coffeeCompanies}
+              onChange={setCoffeeCompanyFilter}
+            />
             <EditableTable
               columns={[
                 { key: "name", label: "Name" },
@@ -919,6 +941,18 @@ function TaskTabs({ selected, onSelect }) {
         <button key={view} className={selected === view ? "selected" : ""} onClick={() => onSelect(view)}>{view}</button>
       ))}
     </div>
+  );
+}
+
+function CompanyFilter({ label, value, companies, onChange }) {
+  return (
+    <label className="filter-field">
+      <span>{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)}>
+        <option value="">All companies</option>
+        {companies.map((company) => <option key={company} value={company}>{company}</option>)}
+      </select>
+    </label>
   );
 }
 
@@ -1175,6 +1209,10 @@ function PrioritySelect({ value, onChange }) {
 
 function priorityClass(priority) {
   return priority ? `priority-${priority}` : "";
+}
+
+function uniqueCompanies(items) {
+  return [...new Set(items.map((item) => item.company?.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 }
 
 createRoot(document.getElementById("root")).render(<App />);
