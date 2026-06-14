@@ -34,6 +34,13 @@ const priorityTags = [
   { value: "yellow", label: "Yellow" },
   { value: "green", label: "Green" },
 ];
+const auraQuotes = [
+  "I will do big things",
+  "I am creating a life I love",
+  "The universe is on my side",
+  "I attract success and opportunities in my career.",
+  "You have no idea how amazing life is about to get. Just trust the process.",
+];
 const summerTodos = [
   "Deloitte internship",
   "Artela internship call",
@@ -690,13 +697,7 @@ function AuthPage({ onAuth }) {
 function HomePage({ state, setRoleAndOpen, setTaskAndOpen, openSummer }) {
   return (
     <section className="landing">
-      <div className="quote-panel">
-        <p className="kicker">You can do it, Sara!!!</p>
-        <h1>Your future internship is a paper trail of tiny brave moves.</h1>
-        <p>
-          One application, one follow-up, one coffee chat, one clear note. That is how the offer starts looking for you too.
-        </p>
-      </div>
+      <AuraQuoteCarousel />
 
       <div className="landing-grid">
         <section className="landing-card">
@@ -732,6 +733,40 @@ function HomePage({ state, setRoleAndOpen, setTaskAndOpen, openSummer }) {
         </section>
       </div>
     </section>
+  );
+}
+
+function AuraQuoteCarousel() {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % auraQuotes.length);
+    }, 20000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const getPosition = (index) => {
+    const total = auraQuotes.length;
+    const diff = (index - activeIndex + total) % total;
+    if (diff === 0) return "center";
+    if (diff === 1) return "right";
+    if (diff === total - 1) return "left";
+    return "hidden";
+  };
+
+  return (
+    <div className="quote-panel aura-panel" aria-label="Motivational quote carousel">
+      {auraQuotes.map((quote, index) => {
+        const position = getPosition(index);
+        return (
+          <div key={quote} className={`aura-quote-card ${position}`} aria-hidden={position === "hidden"}>
+            <p>{quote}</p>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
