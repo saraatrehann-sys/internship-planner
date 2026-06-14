@@ -8,8 +8,11 @@ import {
   Download,
   ExternalLink,
   Home,
+  ArchiveRestore,
   ListChecks,
   Plus,
+  RotateCcw,
+  RotateCw,
   Search,
   Sun,
   Upload,
@@ -77,6 +80,7 @@ const emptyState = {
   meetings: [],
   deloitte: [],
   summer2026: defaultSummer2026,
+  deletedItems: [],
 };
 
 const navItems = [
@@ -87,6 +91,7 @@ const navItems = [
   { id: "coffee", label: "Coffee Chats", icon: Coffee },
   { id: "deloitte", label: "Deloitte 2026", icon: Users },
   { id: "summer", label: "Summer 2026", icon: Sun },
+  { id: "deleted", label: "Recently Deleted", icon: ArchiveRestore },
 ];
 
 function loadState() {
@@ -97,7 +102,9 @@ function loadState() {
     return {
       ...emptyState,
       ...parsed,
+      tasks: (parsed.tasks || []).map((task) => ({ ...task, day: task.day || todayKey() })),
       summer2026: parsed.summer2026?.length ? parsed.summer2026 : defaultSummer2026,
+      deletedItems: parsed.deletedItems || [],
     };
   } catch {
     return emptyState;
@@ -190,8 +197,14 @@ function googleCalendarUrl() {
   return "https://calendar.google.com/calendar/u/0/r/day";
 }
 
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function App() {
   const [state, setState] = useState(loadState);
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
   const [page, setPage] = useState("home");
   const [query, setQuery] = useState("");
   const [session, setSession] = useState(loadSession);
@@ -211,7 +224,9 @@ function App() {
           const merged = {
             ...emptyState,
             ...cloudState,
+            tasks: (cloudState.tasks || []).map((task) => ({ ...task, day: task.day || todayKey() })),
             summer2026: cloudState.summer2026?.length ? cloudState.summer2026 : defaultSummer2026,
+            deletedItems: cloudState.deletedItems || [],
           };
           setState(merged);
           saveState(merged);
@@ -250,8 +265,35 @@ function App() {
   const updateState = (recipe) => {
     setState((current) => {
       const next = typeof recipe === "function" ? recipe(current) : recipe;
+      setUndoStack((stack) => [...stack.slice(-24), current]);
+      setRedoStack([]);
       saveState(next);
       return next;
+    });
+  };
+
+  const replaceState = (next) => {
+    setState(next);
+    saveState(next);
+  };
+
+  const undo = () => {
+    setUndoStack((stack) => {
+      if (!stack.length) return stack;
+      const previous = stack[stack.length - 1];
+      setRedoStack((redo) => [...redo.slice(-24), state]);
+      replaceState(previous);
+      return stack.slice(0, -1);
+    });
+  };
+
+  const redo = () => {
+    setRedoStack((stack) => {
+      if (!stack.length) return stack;
+      const next = stack[stack.length - 1];
+      setUndoStack((undoItems) => [...undoItems.slice(-24), state]);
+      replaceState(next);
+      return stack.slice(0, -1);
     });
   };
 
@@ -277,8 +319,16 @@ function App() {
     `${item.name} ${item.company} ${item.role} ${item.notes}`.toLowerCase().includes(query.toLowerCase()),
   );
 
-  const visibleTasks = state.tasks.filter((task) => task.scope === state.selectedTaskView);
-  const visibleDeloitte = state.deloitte.filter((item) => item.scope === state.selectedTaskView);
+  const visibleTasks = state.tasks.filter((task) => {
+    if (state.selectedTaskView === "Finished") return task.done || task.scope === "Finished";
+    if (state.selectedTaskView === "In Progress") return task.scope === "In Progress" && !task.done;
+    if (state.selectedTaskView === "Daily") return task.scope === "Daily" && (task.day || todayKey()) === todayKey();
+    return task.scope === state.selectedTaskView;
+  });
+  const visibleDeloitte = state.deloitte.filter((item) => {
+    if (state.selectedTaskView === "Finished") return item.done || item.scope === "Finished";
+    return item.scope === state.selectedTaskView;
+  });
 
   const updateRow = (collection, id, patch) => {
     updateState((current) => ({
@@ -290,7 +340,35 @@ function App() {
   const deleteRow = (collection, id) => {
     updateState((current) => ({
       ...current,
+      deletedItems: [
+        {
+          id: makeId("deleted"),
+          collection,
+          item: current[collection].find((entry) => entry.id === id),
+          deletedAt: new Date().toISOString(),
+        },
+        ...(current.deletedItems || []),
+      ].filter((entry) => entry.item).slice(0, 100),
       [collection]: current[collection].filter((item) => item.id !== id),
+    }));
+  };
+
+  const restoreDeleted = (deletedId) => {
+    updateState((current) => {
+      const deleted = (current.deletedItems || []).find((entry) => entry.id === deletedId);
+      if (!deleted) return current;
+      return {
+        ...current,
+        [deleted.collection]: [...current[deleted.collection], deleted.item],
+        deletedItems: current.deletedItems.filter((entry) => entry.id !== deletedId),
+      };
+    });
+  };
+
+  const removeDeleted = (deletedId) => {
+    updateState((current) => ({
+      ...current,
+      deletedItems: (current.deletedItems || []).filter((entry) => entry.id !== deletedId),
     }));
   };
 
@@ -306,6 +384,11 @@ function App() {
 
     if (["summer", "summer 2026"].some((word) => normalized.includes(word))) {
       setPage("summer");
+      return;
+    }
+
+    if (["deleted", "recently deleted", "trash", "archive"].some((word) => normalized.includes(word))) {
+      setPage("deleted");
       return;
     }
 
@@ -384,6 +467,7 @@ function App() {
           text: "",
           done: false,
           priority: "",
+          day: todayKey(),
         },
       ],
     }));
@@ -490,6 +574,10 @@ function App() {
           session={session}
           syncStatus={syncStatus}
           signOut={signOut}
+          undo={undo}
+          redo={redo}
+          canUndo={undoStack.length > 0}
+          canRedo={redoStack.length > 0}
         />
 
         {page === "home" && (
@@ -598,6 +686,17 @@ function App() {
             />
           </section>
         )}
+
+        {page === "deleted" && (
+          <section className="page-card">
+            <PageHeader eyebrow="Archive" title="Recently Deleted" />
+            <RecentlyDeleted
+              items={state.deletedItems || []}
+              onRestore={restoreDeleted}
+              onRemove={removeDeleted}
+            />
+          </section>
+        )}
       </main>
     </div>
   );
@@ -626,7 +725,7 @@ function Sidebar({ page, setPage }) {
   );
 }
 
-function Topbar({ query, setQuery, exportData, importData, session, syncStatus, signOut }) {
+function Topbar({ query, setQuery, exportData, importData, session, syncStatus, signOut, undo, redo, canUndo, canRedo }) {
   return (
     <header className="topbar">
       <label className="search-box">
@@ -636,6 +735,8 @@ function Topbar({ query, setQuery, exportData, importData, session, syncStatus, 
       <div className="topbar-actions">
         <span className="sync-pill">{syncStatus}</span>
         {session && <button className="text-button" onClick={signOut}>Sign out</button>}
+        <button className="icon-button" onClick={undo} title="Undo" disabled={!canUndo}><RotateCcw size={18} /></button>
+        <button className="icon-button" onClick={redo} title="Redo" disabled={!canRedo}><RotateCw size={18} /></button>
         <button className="icon-button" onClick={exportData} title="Download backup"><Download size={18} /></button>
         <label className="icon-button" title="Import backup">
           <Upload size={18} />
@@ -764,7 +865,7 @@ function PageHeader({ eyebrow, title, action, onAction }) {
         <p>{eyebrow}</p>
         <h1>{title}</h1>
       </div>
-      <button onClick={onAction}><Plus size={16} /> {action}</button>
+      {action && <button onClick={onAction}><Plus size={16} /> {action}</button>}
     </div>
   );
 }
@@ -892,7 +993,7 @@ function TaskList({ tasks, onChange, onDelete }) {
       {tasks.map((task) => (
         <article className={`task-row ${task.done ? "done" : ""} ${priorityClass(task.priority)}`} key={task.id}>
           <button
-            onClick={() => onChange(task.id, { done: !task.done, scope: task.done ? "In Progress" : "Finished" })}
+            onClick={() => onChange(task.id, { done: !task.done })}
             aria-label="Toggle task"
           >
             {task.done && <Check size={14} />}
@@ -936,7 +1037,7 @@ function DeloitteList({ people, onChange, onDelete }) {
             </select>
             <PrioritySelect value={item.priority || ""} onChange={(priority) => onChange(item.id, { priority })} />
             <button
-              onClick={() => onChange(item.id, { done: !item.done, scope: item.done ? "In Progress" : "Finished" })}
+              onClick={() => onChange(item.id, { done: !item.done })}
               aria-label="Toggle Deloitte task"
             >
               {item.done && <Check size={14} />}
@@ -949,6 +1050,44 @@ function DeloitteList({ people, onChange, onDelete }) {
       ))}
     </div>
   );
+}
+
+function RecentlyDeleted({ items, onRestore, onRemove }) {
+  if (items.length === 0) return <div className="empty-card">Deleted rows and notes will appear here.</div>;
+
+  return (
+    <div className="deleted-list">
+      {items.map((entry) => (
+        <article className="deleted-row" key={entry.id}>
+          <div>
+            <span>{collectionLabel(entry.collection)}</span>
+            <strong>{deletedTitle(entry.item)}</strong>
+            <small>{new Date(entry.deletedAt).toLocaleString()}</small>
+          </div>
+          <button onClick={() => onRestore(entry.id)}>Restore</button>
+          <button className="delete-button" onClick={() => onRemove(entry.id)} aria-label="Delete forever">
+            <Trash2 size={15} />
+          </button>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function collectionLabel(collection) {
+  const labels = {
+    applications: "Application",
+    coffeeChats: "Coffee chat",
+    meetings: "Meeting note",
+    tasks: "Task",
+    deloitte: "Deloitte note",
+    summer2026: "Summer 2026",
+  };
+  return labels[collection] || "Item";
+}
+
+function deletedTitle(item = {}) {
+  return item.applicationName || item.title || item.heading || item.name || item.text || item.notes || "Untitled";
 }
 
 function SummerTodoList({ items, onChange, onDelete }) {

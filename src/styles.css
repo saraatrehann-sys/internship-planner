@@ -228,6 +228,12 @@ nav button.active {
   background: rgba(255, 244, 241, 0.58);
 }
 
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+  transform: none;
+}
+
 .icon-button input {
   display: none;
 }
@@ -716,8 +722,57 @@ select {
 .deloitte-card.done .deloitte-notes,
 .summer-row.done textarea,
 .complete {
-  color: rgba(223, 208, 184, 0.45);
+  color: #241514;
   text-decoration: line-through;
+  text-decoration-color: #241514;
+  text-decoration-thickness: 2px;
+}
+
+.deleted-list {
+  display: grid;
+  gap: 12px;
+}
+
+.deleted-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 118px 42px;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 246, 244, 0.62);
+}
+
+.deleted-row > div {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  min-width: 0;
+}
+
+.deleted-row span,
+.deleted-row small {
+  color: var(--sand-soft);
+  font-size: 0.82rem;
+}
+
+.deleted-row strong {
+  color: var(--sand);
+  font-size: 1rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.deleted-row button {
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: rgba(255, 234, 230, 0.58);
+  color: var(--sand);
+}
+
+.deleted-row button:hover {
+  background: var(--khaki);
+  color: var(--aura-cream);
 }
 
 .priority-urgent {
