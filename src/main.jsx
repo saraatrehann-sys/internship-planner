@@ -258,7 +258,8 @@ function mergePlannerStates(localState, cloudState) {
 }
 
 function App() {
-  const [state, setState] = useState(loadState);
+  const [state, setState] = useState(() =>
+  SUPABASE_READY ? emptyState : loadState());
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
   const [page, setPage] = useState("home");
@@ -279,12 +280,13 @@ function App() {
         const cloudState = await loadCloudPlanner(session);
         if (cancelled) return;
         if (cloudState) {
-          const merged = mergePlannerStates(state, cloudState);
-          setState(merged);
-          saveState(merged);
-        } else {
-          await saveCloudPlanner(session, state);
-        }
+  const cleanCloudState = normalizePlannerState(cloudState);
+  setState(cleanCloudState);
+} else {
+  const freshState = normalizePlannerState(emptyState);
+  setState(freshState);
+  await saveCloudPlanner(session, freshState);
+}
         setCloudReady(true);
         setSyncStatus("Synced");
       } catch (error) {
@@ -319,14 +321,18 @@ function App() {
       const next = typeof recipe === "function" ? recipe(current) : recipe;
       setUndoStack((stack) => [...stack.slice(-24), current]);
       setRedoStack([]);
-      saveState(next);
+      if (!SUPABASE_READY) {
+  saveState(next);
+}
       return next;
     });
   };
 
   const replaceState = (next) => {
     setState(next);
-    saveState(next);
+    if (!SUPABASE_READY) {
+  saveState(next);
+}
   };
 
   const undo = () => {
@@ -634,6 +640,11 @@ function App() {
     setSession(null);
     setCloudReady(false);
     setSyncStatus(SUPABASE_READY ? "Signed out" : "Local only");
+    setState(normalizePlannerState(emptyState));
+setUndoStack([]);
+setRedoStack([]);
+setPage("home");
+localStorage.removeItem(STORAGE_KEY);
   };
 
   if (SUPABASE_READY && !session) {
