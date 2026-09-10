@@ -1,69 +1,63 @@
-# Career OS
+# Internship Planner
 
-A personal, dark-mode career operating system for managing internship applications, recruiting timelines, sponsorship fit, skill growth, networking, projects, and weekly execution.
+A personalized career-management web app for keeping internship recruiting in one place.
 
-## Information Architecture
+I built this because applications, coffee chats, deadlines, tasks, and recruiting notes often end up scattered across spreadsheets, calendars, and notes apps. I wanted one workspace that brings the entire recruiting process together.
 
-- Command: high-signal daily dashboard with active applications, interviews, near-term deadlines, and open actions.
-- Applications: drag-and-drop board organized by Watchlist, Applied, Interview, Offer, and Archived.
-- Calendar: deadline timeline with Google Calendar event links.
-- Skills: progress roadmap by career role.
-- Plan: daily routine and weekly priorities.
-- Network: lightweight relationship and follow-up log.
-- Projects: portfolio proof tracker.
+## Live Demo
 
-## Core Flows
+https://build-eight-flax.vercel.app
 
-- Filter by role focus to narrow every view to Product, Consulting, Software, Finance, or all tracks.
-- Update an application in seconds by changing its status or dragging it to another lane.
-- Add a new opportunity from the quick-entry bar.
-- Send deadline events to Google Calendar from application cards or timeline rows.
-- Mark daily and weekly tasks complete from the command or planning views.
-- Export/import JSON backups for portable personal data.
+Create an account to try the planner with your own private workspace.
 
-## Storage
+## What It Does
 
-Data can sync privately through Supabase Auth and a `planner_data` table. If Supabase environment variables are not set, the app still works locally in the browser with JSON import/export backups.
+- Track internship and job applications by role, company, deadline, and status
+- Create custom role categories based on each user's recruiting goals
+- Organize coffee chats and networking follow-ups
+- Manage daily and weekly recruiting tasks
+- Store recruiting notes in one place
+- Open Google Calendar alongside recruiting activity
+- Recover recently deleted planner items
+- Undo and redo changes
+- Import and export planner data as JSON backups
+- Sync planner data privately across sessions
+- Keep each authenticated user's planner data separate
 
-## Supabase Setup
+## Tech Stack
 
-Create a Supabase project, then run this SQL in the Supabase SQL editor:
+- **React** — frontend UI and application state
+- **Vite** — development and build tooling
+- **Supabase Auth** — email/password authentication
+- **Supabase Postgres** — cloud persistence
+- **Row Level Security (RLS)** — user-level data isolation
+- **Vercel** — production deployment
+- **Lucide React** — interface icons
 
-```sql
-create table if not exists public.planner_data (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  data jsonb not null default '{}'::jsonb,
-  updated_at timestamptz not null default now()
-);
+## Why I Built It
 
-alter table public.planner_data enable row level security;
+Recruiting becomes difficult to manage when information lives in several places: applications in a spreadsheet, networking conversations in notes, deadlines in a calendar, and tasks somewhere else.
 
-create policy "Users can read own planner data"
-on public.planner_data
-for select
-using (auth.uid() = user_id);
+I wanted to build a product around that workflow rather than another generic to-do list. The planner brings those pieces together while allowing each user to customize the types of roles they are recruiting for.
 
-create policy "Users can insert own planner data"
-on public.planner_data
-for insert
-with check (auth.uid() = user_id);
+## Key Technical Decisions
 
-create policy "Users can update own planner data"
-on public.planner_data
-for update
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-```
+### User-specific data
 
-Copy `.env.example` to `.env` and fill in your Supabase project URL and anon key:
+Each authenticated user has their own planner data in Supabase. Database Row Level Security policies restrict access so users can only access their own planner.
 
-```bash
-cp .env.example .env
-```
+### Customizable recruiting workflows
 
-## Run
+Role categories are stored as part of each user's planner state rather than being permanently hard-coded, allowing users to tailor the product to areas such as consulting, product, software, finance, venture capital, or other career paths.
+
+### Cloud synchronization
+
+Planner changes are persisted to Supabase so users can access their workspace across sessions while maintaining separate authenticated accounts.
+
+## Running Locally
+
+Clone the repository:
 
 ```bash
-npm install --cache .npm-cache
-npm run dev
-```
+git clone https://github.com/saraatrehann-sys/build.git
+cd build

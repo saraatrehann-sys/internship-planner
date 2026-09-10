@@ -4,3 +4,5 @@ dist
 .DS_Store
 *.swp
 .env
+.env.local
+.env.*.local
