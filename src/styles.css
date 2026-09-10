@@ -1090,3 +1090,50 @@ select {
     min-height: 420px;
   }
 }
+
+.home-settings {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.home-settings-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(60, 30, 30, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  color: #321d1d;
+  cursor: pointer;
+}
+
+.home-settings-menu {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  z-index: 20;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid rgba(60, 30, 30, 0.18);
+  border-radius: 10px;
+  background: #fff5f5;
+  box-shadow: 0 10px 30px rgba(60, 30, 30, 0.12);
+}
+
+.home-settings-menu button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #321d1d;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-settings-menu button:hover {
+  background: rgba(190, 45, 45, 0.08);
+}

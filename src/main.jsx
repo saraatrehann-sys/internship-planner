@@ -28,7 +28,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const SUPABASE_READY = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-const roles = ["Consulting", "Product", "Software", "Finance", "Deloitte", "Other"];
+const roles = ["Consulting", "Product", "Software", "Finance", "Other"];
 const statuses = ["Pending", "Applied", "Interview", "Rejected"];
 const chatStatuses = ["Pending", "Texted", "Followup"];
 const taskViews = ["Daily", "Weekly", "In Progress", "Finished"];
@@ -73,15 +73,27 @@ const defaultSummer2026 = summerTodos.map((text, index) => ({
 
 const emptyState = {
   selectedRole: "Consulting",
+
+  roleTypes: ["Consulting", "Product", "Software", "Finance", "Other"],
+
   selectedTaskView: "Daily",
+
   calendarEmbedUrl: "",
+
   applications: [],
+
   coffeeChats: [],
+
   tasks: [],
+
   meetings: [],
+
   deloitte: [],
+
   summer2026: defaultSummer2026,
+
   notes: [],
+
   deletedItems: [],
 };
 
@@ -92,9 +104,6 @@ const navItems = [
   { id: "tasks", label: "Daily Tasks", icon: ListChecks },
   { id: "coffee", label: "Coffee Chats", icon: Coffee },
   { id: "notes", label: "Notes", icon: FileText },
-  { id: "deloitte", label: "Deloitte 2026", icon: Users },
-  { id: "summer", label: "Summer 2026", icon: Sun },
-  { id: "deleted", label: "Recently Deleted", icon: ArchiveRestore },
 ];
 
 function loadState() {
@@ -202,13 +211,24 @@ function normalizePlannerState(source = {}) {
   return {
     ...emptyState,
     ...source,
+
+    roleTypes:
+      source.roleTypes?.length
+        ? source.roleTypes
+        : ["Consulting", "Product", "Software", "Finance", "Other"],
+
     applications: source.applications || [],
     coffeeChats: source.coffeeChats || [],
-    tasks: (source.tasks || []).map((task) => ({ ...task, day: task.day || todayKey() })),
+    tasks: (source.tasks || []).map((task) => ({
+      ...task,
+      day: task.day || todayKey(),
+    })),
     meetings: source.meetings || [],
     deloitte: source.deloitte || [],
     notes: source.notes || [],
-    summer2026: source.summer2026?.length ? source.summer2026 : defaultSummer2026,
+    summer2026: source.summer2026?.length
+      ? source.summer2026
+      : defaultSummer2026,
     deletedItems: source.deletedItems || [],
   };
 }
@@ -639,14 +659,44 @@ function App() {
         />
 
         {page === "home" && (
-          <HomePage
-            state={state}
-            setRoleAndOpen={setRoleAndOpen}
-            setTaskAndOpen={setTaskAndOpen}
-            openSummer={() => setPage("summer")}
-            updateState={updateState}
-          />
-        )}
+  <HomePage
+    state={state}
+    setRoleAndOpen={setRoleAndOpen}
+    setTaskAndOpen={setTaskAndOpen}
+    openSummer={() => setPage("summer")}
+    onAddRole={() => {
+      const newRole = window.prompt("Enter a role type");
+
+      if (!newRole) return;
+
+      const cleanedRole = newRole.trim();
+
+      if (!cleanedRole) return;
+
+      updateState((current) => {
+        const currentRoles =
+          current.roleTypes || [
+            "Consulting",
+            "Product",
+            "Software",
+            "Finance",
+            "Other",
+          ];
+
+        const alreadyExists = currentRoles.some(
+          (role) => role.toLowerCase() === cleanedRole.toLowerCase()
+        );
+
+        if (alreadyExists) return current;
+
+        return {
+          ...current,
+          roleTypes: [...currentRoles, cleanedRole],
+        };
+      });
+    }}
+  />
+)}
 
         {page === "applications" && (
           <section className="page-card">
@@ -656,7 +706,13 @@ function App() {
               action="Add row"
               onAction={addApplication}
             />
-            <RoleTabs selected={state.selectedRole} onSelect={(role) => updateState((current) => ({ ...current, selectedRole: role }))} />
+            <RoleTabs
+  roles={state.roleTypes}
+  selected={state.selectedRole}
+  onSelect={(role) =>
+    updateState((current) => ({ ...current, selectedRole: role }))
+  }
+/>
             <CompanyFilter
               label="Company filter"
               value={applicationCompanyFilter}
@@ -749,13 +805,7 @@ function App() {
           </section>
         )}
 
-        {page === "deloitte" && (
-          <section className="page-card">
-            <PageHeader eyebrow="Deloitte 2026" title="Deloitte 2026" action="Add note box" onAction={addDeloitte} />
-            <TaskTabs selected={state.selectedTaskView} onSelect={(taskView) => updateState((current) => ({ ...current, selectedTaskView: taskView }))} />
-            <DeloitteList people={visibleDeloitte} onChange={(id, patch) => updateRow("deloitte", id, patch)} onDelete={(id) => deleteRow("deloitte", id)} />
-          </section>
-        )}
+      
 
         {page === "summer" && (
           <section className="page-card">
@@ -788,7 +838,7 @@ function Sidebar({ page, setPage }) {
     <aside className="sidebar">
       <div className="brand">
         <div>
-          <strong>Sara's Internship Planner</strong>
+          <strong>Internship Planner</strong>
         </div>
       </div>
       <nav>
@@ -854,7 +904,7 @@ function AuthPage({ onAuth }) {
         <p className="kicker">Private internship planner</p>
         <h1>{mode === "signin" ? "Sign in to your planner." : "Create your private planner."}</h1>
         <p className="auth-copy">
-          Your applications, tasks, coffee chats, and Deloitte notes sync to your own Supabase database after login.
+          Your one place for all your applications, coffee chats, and to-dos.
         </p>
         <form onSubmit={submit} className="auth-form">
           <label>
@@ -876,7 +926,13 @@ function AuthPage({ onAuth }) {
   );
 }
 
-function HomePage({ state, setRoleAndOpen, setTaskAndOpen, openSummer }) {
+function HomePage({
+  state,
+  setRoleAndOpen,
+  setTaskAndOpen,
+  openSummer,
+  onAddRole,
+}) {
   return (
     <section className="landing">
       <AuraQuoteCarousel />
@@ -886,12 +942,20 @@ function HomePage({ state, setRoleAndOpen, setTaskAndOpen, openSummer }) {
           <h2>Role type</h2>
           <p>Pick a role to open its application sheet.</p>
           <div className="choice-grid role-grid">
-            {roles.map((role) => (
-              <button key={role} className={state.selectedRole === role ? "selected" : ""} onClick={() => setRoleAndOpen(role)}>
-                {role}
-              </button>
-            ))}
-          </div>
+  {state.roleTypes.map((role) => (
+    <button
+      key={role}
+      className={state.selectedRole === role ? "selected" : ""}
+      onClick={() => setRoleAndOpen(role)}
+    >
+      {role}
+    </button>
+  ))}
+
+  <button type="button" onClick={onAddRole}>
+    + Add role
+  </button>
+</div>
         </section>
 
         <section className="landing-card">
@@ -932,7 +996,7 @@ function AuraQuoteCarousel() {
   return (
     <div className="quote-panel aura-panel" aria-label="Motivational quote carousel">
       <div key={activeIndex} className="aura-quote-card">
-        <span>YOU CAN DO IT SARA!!</span>
+        <span>YOU CAN DO IT!!</span>
         <p>{auraQuotes[activeIndex]}</p>
       </div>
     </div>
@@ -951,11 +1015,17 @@ function PageHeader({ eyebrow, title, action, onAction }) {
   );
 }
 
-function RoleTabs({ selected, onSelect }) {
+function RoleTabs({ roles, selected, onSelect }) {
   return (
     <div className="tabs">
       {roles.map((role) => (
-        <button key={role} className={selected === role ? "selected" : ""} onClick={() => onSelect(role)}>{role}</button>
+        <button
+          key={role}
+          className={selected === role ? "selected" : ""}
+          onClick={() => onSelect(role)}
+        >
+          {role}
+        </button>
       ))}
     </div>
   );
